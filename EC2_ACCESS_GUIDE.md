@@ -1,14 +1,36 @@
 # EC2 Access Guide
 
+## Finding Your EC2 Public IP
+
+To find your EC2 instance's public IP address:
+
+**Option 1 - AWS Console:**
+1. Go to EC2 Console: https://console.aws.amazon.com/ec2/
+2. Click "Instances" in the left sidebar
+3. Find your instance
+4. Look for "Public IPv4 address" in the details
+
+**Option 2 - From EC2 Instance (SSH):**
+```bash
+curl -s ifconfig.me
+```
+
+**Option 3 - AWS CLI:**
+```bash
+aws ec2 describe-instances --instance-ids YOUR_INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress'
+```
+
+Once you have your IP, replace `YOUR_EC2_PUBLIC_IP` throughout this guide.
+
 ## Your EC2 Public IP
-**3.140.197.239**
+**YOUR_EC2_PUBLIC_IP** (Replace this with your actual IP)
 
 ## Application URLs
 
 Access your Facebook clone at:
-- **Frontend**: http://3.140.197.239:5173
-- **Backend API**: http://3.140.197.239:3000/api/v1
-- **Health Check**: http://3.140.197.239:3000/health
+- **Frontend**: http://YOUR_EC2_PUBLIC_IP:5173
+- **Backend API**: http://YOUR_EC2_PUBLIC_IP:3000/api/v1
+- **Health Check**: http://YOUR_EC2_PUBLIC_IP:3000/health
 
 ## ⚠️ Security Group Configuration Required
 
@@ -30,7 +52,7 @@ Before you can access the application, you need to configure your EC2 Security G
 
 2. **Find Your Instance**:
    - Click on "Instances" in the left sidebar
-   - Find your instance (IP: 3.140.197.239)
+   - Find your instance (IP: YOUR_EC2_PUBLIC_IP)
 
 3. **Edit Security Group**:
    - Click on your instance
@@ -67,7 +89,7 @@ Before you can access the application, you need to configure your EC2 Security G
 ```bash
 # Get your security group ID
 SECURITY_GROUP_ID=$(aws ec2 describe-instances \
-  --filters "Name=ip-address,Values=3.140.197.239" \
+  --filters "Name=ip-address,Values=YOUR_EC2_PUBLIC_IP" \
   --query "Reservations[0].Instances[0].SecurityGroups[0].GroupId" \
   --output text)
 
@@ -98,14 +120,14 @@ aws ec2 authorize-security-group-ingress \
 ### 1. Test Backend API (from your local machine):
 
 ```bash
-curl http://3.140.197.239:3000/health
+curl http://YOUR_EC2_PUBLIC_IP:3000/health
 ```
 
 Expected response: `{"status":"ok"}`
 
 ### 2. Open Frontend (in your browser):
 
-Navigate to: **http://3.140.197.239:5173**
+Navigate to: **http://YOUR_EC2_PUBLIC_IP:5173**
 
 You should see the Facebook Clone login/register page.
 
@@ -119,18 +141,44 @@ curl http://localhost:3000/health
 curl -I http://localhost:5173
 ```
 
-## Configuration Changes Made
+## Configuration for EC2 Deployment
 
-The following files were updated to use your public IP:
+To make the application accessible via your EC2 public IP, you need to update these files:
 
-1. **backend/.env**:
-   - Changed `CORS_ORIGIN` from `http://localhost:5173` to `http://3.140.197.239:5173`
+### 1. Update `backend/.env`
 
-2. **frontend/.env**:
-   - Changed `VITE_API_URL` from `http://localhost:3000/api/v1` to `http://3.140.197.239:3000/api/v1`
+```bash
+# Change CORS_ORIGIN to your EC2 IP
+CORS_ORIGIN=http://YOUR_EC2_PUBLIC_IP:5173
+```
 
-3. **docker-compose.yml**:
-   - Updated environment variables to match
+### 2. Update `frontend/.env`
+
+```bash
+# Change VITE_API_URL to your EC2 IP
+VITE_API_URL=http://YOUR_EC2_PUBLIC_IP:3000/api/v1
+```
+
+### 3. Update `docker-compose.yml`
+
+In the backend service environment:
+```yaml
+CORS_ORIGIN: http://YOUR_EC2_PUBLIC_IP:5173
+```
+
+In the frontend service environment:
+```yaml
+VITE_API_URL: http://YOUR_EC2_PUBLIC_IP:3000/api/v1
+```
+
+### 4. Restart containers after changes:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+**Note:** The `.env` files are not in the git repository (they're in `.gitignore` for security). You'll need to create them manually on your EC2 instance.
 
 ## Security Considerations
 
@@ -157,7 +205,7 @@ If you don't want to open ports publicly, you can use SSH tunneling:
 
 ```bash
 # On your local machine
-ssh -L 5173:localhost:5173 -L 3000:localhost:3000 ubuntu@3.140.197.239
+ssh -L 5173:localhost:5173 -L 3000:localhost:3000 ubuntu@YOUR_EC2_PUBLIC_IP
 
 # Then access:
 # Frontend: http://localhost:5173
@@ -188,7 +236,7 @@ This keeps ports closed but allows you to access via SSH tunnel.
 
 5. **Verify CORS settings**:
    ```bash
-   curl -I http://3.140.197.239:3000/health
+   curl -I http://YOUR_EC2_PUBLIC_IP:3000/health
    ```
 
 ### Connection timeout?
@@ -205,7 +253,7 @@ This keeps ports closed but allows you to access via SSH tunnel.
 ## Next Steps
 
 1. ✅ Configure security group rules
-2. ✅ Access http://3.140.197.239:5173 in your browser
+2. ✅ Access http://YOUR_EC2_PUBLIC_IP:5173 in your browser
 3. ✅ Register a new account
 4. ✅ Start testing the application
 
@@ -233,4 +281,4 @@ sudo docker exec -it facebook_db psql -U postgres -d facebook
 **Your application is configured for external access!**
 
 Once you configure the security group rules, access it at:
-**http://3.140.197.239:5173**
+**http://YOUR_EC2_PUBLIC_IP:5173**

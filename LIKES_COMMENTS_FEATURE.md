@@ -124,7 +124,7 @@ Authorization: Bearer <token>
 ### Test Like Functionality:
 
 1. **Create a test post:**
-   - Login to http://3.140.197.239:5173
+   - Login to http://YOUR_EC2_PUBLIC_IP:5173
    - Create a new post on timeline
    - You should see "0 Likes" and "0 Comments"
 
@@ -253,6 +253,6 @@ The like and comment features are now fully functional! Users can:
 - ✅ Delete their own comments
 - ✅ See visual feedback for their likes
 
-**Access your upgraded application at: http://3.140.197.239:5173**
+**Access your upgraded application at: http://YOUR_EC2_PUBLIC_IP:5173**
 
 Enjoy the new social features! 🎉
